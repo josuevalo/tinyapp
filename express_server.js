@@ -6,14 +6,14 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 app.set("view engine", "ejs");
 
-function generateRandomString() {
+const generateRandomString = function() {
   let characters = "abcdefghijklmnopqrstuvwxyz1234567890";
   let random = "";
   for (let i = 0; i < 6; i++)  {
     random += characters[Math.floor(Math.random() * characters.length)];
   }
   return random;
-}
+};
 
 
 
@@ -22,11 +22,10 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body); 
-   // Log the POST request body to the console
-   const newUrl = generateRandomString()
-   urlDatabase[newUrl] = req.body.longURL
-   res.redirect(`/urls/${newUrl}`)
+  console.log(req.body);
+  const newUrl = generateRandomString();
+  urlDatabase[newUrl] = req.body.longURL;
+  res.redirect(`/urls/${newUrl}`);
 });
 
 const urlDatabase = {
@@ -54,6 +53,11 @@ app.get("/hello", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  const redirectNewUrl = urlDatabase[req.params.shortURL];
+  res.redirect(redirectNewUrl);
 });
 
 app.listen(PORT, () => {
