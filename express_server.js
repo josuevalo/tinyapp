@@ -2,8 +2,8 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({extended: true}));
 
+app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 
 const generateRandomString = function() {
@@ -60,13 +60,25 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(redirectNewUrl);
 });
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
-
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   console.log("Deleted:",req.params.shortURL,urlDatabase[req.params.shortURL]);
- delete urlDatabase[req.params.shortURL]
+  delete urlDatabase[req.params.shortURL]
   res.redirect('/urls');
+});
+
+
+
+app.post("/urls/:id",(req,res)=>{
+  const id = req.params.id; 
+console.log("req.body--->", req.body)
+  const updatedUrl = req.body.newUrl
+
+  urlDatabase[id] = updatedUrl;
+  res.redirect('/urls');
+});
+
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
 });
