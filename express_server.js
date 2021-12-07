@@ -30,7 +30,7 @@ app.post("/urls", (req, res) => {
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "9sm5xK": "http://www.google.com",
 };
 
 app.get("/urls", (req, res) => {
@@ -62,4 +62,11 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
+});
+
+
+app.post("/urls/:shortURL/delete", (req, res) => {
+  console.log("Deleted:",req.params.shortURL,urlDatabase[req.params.shortURL]);
+ delete urlDatabase[req.params.shortURL]
+  res.redirect('/urls');
 });
