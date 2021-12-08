@@ -2,23 +2,27 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
+const cookieParser = require('cookie-parser')
 
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser())
+app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
-const generateRandomString = function() {
+const generateRandomString = function () {
   let characters = "abcdefghijklmnopqrstuvwxyz1234567890";
   let random = "";
-  for (let i = 0; i < 6; i++)  {
+  for (let i = 0; i < 6; i++) {
     random += characters[Math.floor(Math.random() * characters.length)];
   }
   return random;
 };
 
 
-
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = {
+    username: req.cookies.username 
+  };
+  res.render("urls_new", templateVars);
 });
 
 app.post("/urls", (req, res) => {
@@ -34,9 +38,15 @@ const urlDatabase = {
 };
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = {
+    urls: urlDatabase, 
+    username: req.cookies.username 
+  };
+
   res.render("urls_index", templateVars);
 });
+
+
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -51,7 +61,11 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  const templateVars = { 
+    shortURL: req.params.shortURL, 
+    longURL: urlDatabase[req.params.shortURL], 
+    username: req.cookies.username 
+  };
   res.render("urls_show", templateVars);
 });
 
@@ -62,19 +76,31 @@ app.get("/u/:shortURL", (req, res) => {
 
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  console.log("Deleted:",req.params.shortURL,urlDatabase[req.params.shortURL]);
+  console.log("Deleted:", req.params.shortURL, urlDatabase[req.params.shortURL]);
   delete urlDatabase[req.params.shortURL]
   res.redirect('/urls');
 });
 
 
+app.post("/login", (req, res) => {
+  const user = req.body.login
+  res.cookie('username', user)
+  console.log(`User ${user} is logged in.`)
+  res.redirect('/urls');
+});
 
-app.post("/urls/:id",(req,res)=>{
-  const id = req.params.id; 
-console.log("req.body--->", req.body)
+
+app.post("/urls/:id", (req, res) => {
+  const id = req.params.id;
+  console.log("req.body--->", req.body)
   const updatedUrl = req.body.newUrl
-
   urlDatabase[id] = updatedUrl;
+  res.redirect('/urls');
+});
+
+app.post("/logout", (req, res) => {
+  res.clearCookie("username")
+  console.log("User logged out")
   res.redirect('/urls');
 });
 
