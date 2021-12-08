@@ -10,8 +10,8 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
       <div class="navbar-nav ml-auto ">
-      <% if (username) { %>
-        <p>Logged in as: <%= username %>! </p> 
+      <% if (user) { %>
+        <p>Logged in as: <%= user.email %>! </p> 
         <form class="form-inline" action="/logout" method="POST">
           <button type="submit" class="btn btn-outline-dark">Logout</button>
         </form>
