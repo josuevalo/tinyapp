@@ -30,6 +30,17 @@ const generateRandomString = function () {
   return random;
 };
 
+const userLookupByEmail = (email) => {
+  for(const userId in users) {
+    const user = users[userId];
+    if(user.email === email) {
+      return user;
+    }
+  }
+  return null;
+}
+
+
 
 app.get("/urls/new", (req, res) => {
   const cookie = req.cookies.user_id
@@ -133,12 +144,38 @@ app.get("/register", (req, res) => {
   }
     res.render("urls_registration", templateVars)
 });
+// const email = req.body.email;
+// const password = req.body.password;
 
+// if (!email || !password) {
+//   return res.status(400).send("email and password cannot be blank");
+// }
+
+// const userLookupByEmail = (email) => {
+//   for(const userId in users) {
+//     const user = users[userId];
+//     if(user.email === email) {
+//       return user;
+//     }
+//   }
+//   return null;
+// }
 
 app.post("/register", (req, res) => {
   const id = generateRandomString();
   const email = req.body.email
   const password = req.body.password
+
+  if (!email || !password) {
+    return res.status(400).send("Oops! Email and password fields cannot be blank.")
+  }
+
+  const userId = userLookupByEmail(email);
+  console.log('user--->', userId);
+  if (userId) {
+    return res.status(400).send("Oops! The email seems to already exist")
+  }
+
   const user = {
     id: id,
     email: email,
@@ -146,7 +183,6 @@ app.post("/register", (req, res) => {
   }
  users[id] = user
   res.cookie('user_id', id);
-  console.log("USERS!!", users)
   console.log(`User ${user.id} is logged in.`);
   res.redirect('/urls');
 });
