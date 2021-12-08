@@ -8,6 +8,19 @@ app.use(cookieParser())
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
+
 const generateRandomString = function () {
   let characters = "abcdefghijklmnopqrstuvwxyz1234567890";
   let random = "";
@@ -42,10 +55,8 @@ app.get("/urls", (req, res) => {
     urls: urlDatabase, 
     username: req.cookies.username 
   };
-
   res.render("urls_index", templateVars);
 });
-
 
 
 app.get("/", (req, res) => {
@@ -104,14 +115,37 @@ app.post("/logout", (req, res) => {
   res.redirect('/urls');
 });
 
+///
+/// Registration
+///
 app.get("/register", (req, res) => {
   const templateVars = { 
-    username: req.cookies.username 
+    username: req.cookies.username,
+    users: users
   }
     res.render("urls_registration", templateVars)
 });
 
 
+app.post("/register", (req, res) => {
+  const id = generateRandomString();
+  const email = req.body.email
+  const password = req.body.password
+  const user = {
+    id: id,
+    email: email,
+    password: password
+  }
+ users[id] = user
+  res.cookie('user_id', id);
+  console.log("USERS!!", users)
+  console.log(`User ${user.id} is logged in.`);
+  res.redirect('/urls');
+});
+
+///
+/// Listen - open port
+///
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
