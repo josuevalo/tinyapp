@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const PORT = 8080; // default port 8080
+const PORT = 8080; 
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser')
 
@@ -103,6 +103,14 @@ app.post("/logout", (req, res) => {
   console.log("User logged out")
   res.redirect('/urls');
 });
+
+app.get("/register", (req, res) => {
+  const templateVars = { 
+    username: req.cookies.username 
+  }
+    res.render("urls_registration", templateVars)
+});
+
 
 
 app.listen(PORT, () => {
