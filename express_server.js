@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const PORT = 8080; 
+const PORT = 8080;
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser')
 
@@ -8,15 +8,15 @@ app.use(cookieParser())
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
-const users = { 
+const users = {
   "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
+    id: "userRandomID",
+    email: "user@example.com",
     password: "purple-monkey-dinosaur"
   },
- "user2RandomID": {
-    id: "user2RandomID", 
-    email: "user2@example.com", 
+  "aJ48lW": {
+    id: "aJ48lW",
+    email: "user2@example.com",
     password: "dishwasher-funk"
   }
 }
@@ -31,13 +31,28 @@ const generateRandomString = function () {
 };
 
 const userLookupByEmail = (email) => {
-  for(const userId in users) {
+  for (const userId in users) {
     const user = users[userId];
-    if(user.email === email) {
+    if (user.email === email) {
       return user;
     }
   }
   return null;
+}
+
+const urlsForUser = function (id) {
+  if (!id) {
+    return {}
+  }
+
+  let newObject = {}
+  for (let urls in urlDatabase) {
+    const check = urlDatabase[urls]
+    if (id === check.userID) {
+      newObject[urls] = check
+    }
+  }
+  return newObject
 }
 
 app.get("/urls/new", (req, res) => {
@@ -48,7 +63,7 @@ app.get("/urls/new", (req, res) => {
   const cookie = req.cookies.user_id
   const user = users[cookie]
   const templateVars = {
-    user: user 
+    user: user
   };
   res.render("urls_new", templateVars);
 });
@@ -57,14 +72,14 @@ app.post("/urls", (req, res) => {
   const user = req.cookies.user_id
   if (!user) {
     // If the user is not logged in, send an error
-      return res.status(400).send("Error: you must be logged in to access.");
+    return res.status(400).send("Error: you must be logged in to access.");
   }
   console.log(req.body);
   const newUrl = generateRandomString();
   const url = {
-        longURL: req.body.longURL,
-        userID: user
-    }
+    longURL: req.body.longURL,
+    userID: user
+  }
   urlDatabase[newUrl] = url;
   console.log("after", urlDatabase)
   res.redirect(`/urls/${newUrl}`);
@@ -72,21 +87,28 @@ app.post("/urls", (req, res) => {
 
 const urlDatabase = {
   b6UTxQ: {
-      longURL: "https://www.tsn.ca",
-      userID: "aJ48lW"
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lB"
   },
   i3BoGr: {
-      longURL: "https://www.google.ca",
-      userID: "aJ48lW"
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW"
   }
 };
 
 app.get("/urls", (req, res) => {
-  const cookie = req.cookies.user_id
-  const user = users[cookie]
+  const cookie = req.cookies.user_id;
+  const user = users[cookie];
+  // if (!cookie) {
+  //   // If the user is not logged in, send an error
+  //     return res.status(400).send("Error: you must be logged in to access.");
+  // }
+
+  const compareActiveUser = urlsForUser(cookie);
+  console.log("compare active user", compareActiveUser);
   const templateVars = {
-    urls: urlDatabase, 
-    user:user
+    urls: compareActiveUser,
+    user: user
   };
   res.render("urls_index", templateVars);
 });
@@ -107,10 +129,16 @@ app.get("/hello", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const cookie = req.cookies.user_id
   const user = users[cookie]
-  const templateVars = { 
-    shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL].longURL, 
-    user: user 
+  const userId = urlDatabase[req.params.shortURL] ? urlDatabase[req.params.shortURL].userID : undefined
+  let loggedIn = false
+  if (userId === cookie) {
+    loggedIn = true
+  }
+  const templateVars = {
+    shortURL: req.params.shortURL,
+    longURL: urlDatabase[req.params.shortURL] ? urlDatabase[req.params.shortURL].longURL : undefined,
+    user: user,
+    loggedIn: loggedIn
   };
   res.render("urls_show", templateVars);
 });
@@ -125,6 +153,11 @@ app.get("/u/:shortURL", (req, res) => {
 
 
 app.post("/urls/:shortURL/delete", (req, res) => {
+  const user = req.cookies.user_id
+  if (!user) {
+    // If the user is not logged in, send an error
+    return res.status(400).send("Error: you must be logged in to access.");
+  }
   console.log("Deleted:", req.params.shortURL, urlDatabase[req.params.shortURL]);
   delete urlDatabase[req.params.shortURL]
   res.redirect('/urls');
@@ -140,22 +173,27 @@ app.post("/login", (req, res) => {
   const email = req.body.email
   const password = req.body.password
   const user = userLookupByEmail(email)
-  
-  if(!user){
+
+  if (!user) {
     return res.status(403).send("Sorry! User email does not exist")
   }
-  
-  if(user.password !== password) {
-      return res.status(403).send('Error. Oops! Something went wrong.')
-    }
 
-    res.cookie('user_id', user.id)
-    console.log(`User ${email} is logged in.`)
-    res.redirect('/urls');
-  });
-  
-  
+  if (user.password !== password) {
+    return res.status(403).send('Error. Oops! Something went wrong.')
+  }
+
+  res.cookie('user_id', user.id)
+  console.log(`User ${email} is logged in.`)
+  res.redirect('/urls');
+});
+
+// This is editing a URL
 app.post("/urls/:id", (req, res) => {
+  const user = req.cookies.user_id
+  if (!user) {
+    // If the user is not logged in, send an error
+    return res.status(400).send("Error: you must be logged in to access.");
+  }
   const id = req.params.id;
   console.log("req.body--->", req.body)
   const updatedUrl = req.body.newUrl
@@ -177,11 +215,11 @@ app.get("/register", (req, res) => {
   }
   const cookie = req.cookies.user_id
   const user = users[cookie]
-  const templateVars = { 
+  const templateVars = {
     user: user,
     users: users
   }
-    res.render("urls_registration", templateVars)
+  res.render("urls_registration", templateVars)
 });
 
 
@@ -189,7 +227,7 @@ app.post("/register", (req, res) => {
   const id = generateRandomString();
   const email = req.body.email
   const password = req.body.password
-console.log("req.body ----->", req.body)
+  console.log("req.body ----->", req.body)
   if (!email || !password) {
     return res.status(400).send("Oops! Email and password fields cannot be blank.")
   }
@@ -205,7 +243,7 @@ console.log("req.body ----->", req.body)
     email: email,
     password: password
   }
- users[id] = user
+  users[id] = user
   res.cookie('user_id', id);
   console.log(`User ${user.id} is logged in.`);
   res.redirect('/urls');
@@ -217,7 +255,7 @@ app.get("/login", (req, res) => {
   }
   const cookie = req.cookies.user_id
   const user = users[cookie]
-  const templateVars = { 
+  const templateVars = {
     user: user,
     users: users
   }
