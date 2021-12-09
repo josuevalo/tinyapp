@@ -43,6 +43,10 @@ const userLookupByEmail = (email) => {
 
 
 app.get("/urls/new", (req, res) => {
+  if (!req.cookies.user_id) {
+    res.redirect('/login');
+    return
+  }
   const cookie = req.cookies.user_id
   const user = users[cookie]
   const templateVars = {
@@ -52,6 +56,9 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
+  if (!req.cookies.user_id) {
+      return res.status(400).send("Error: you must be logged in to access.");
+  }
   console.log(req.body);
   const newUrl = generateRandomString();
   urlDatabase[newUrl] = req.body.longURL;
@@ -152,6 +159,9 @@ app.post("/logout", (req, res) => {
 /// Registration
 ///
 app.get("/register", (req, res) => {
+  if (req.cookies.user_id) {
+    res.redirect('/urls')
+  }
   const cookie = req.cookies.user_id
   const user = users[cookie]
   const templateVars = { 
@@ -189,12 +199,16 @@ console.log("req.body ----->", req.body)
 });
 
 app.get("/login", (req, res) => {
+  if (req.cookies.user_id) {
+    res.redirect('/urls')
+  }
   const cookie = req.cookies.user_id
   const user = users[cookie]
   const templateVars = { 
     user: user,
     users: users
   }
+
   res.render('urls_login', templateVars);
 })
 
