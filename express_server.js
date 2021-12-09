@@ -116,6 +116,9 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
+  if (!urlDatabase[req.params.shortURL]) {
+    return res.status(404).send("Page does not exist");
+  }
   const redirectNewUrl = urlDatabase[req.params.shortURL].longURL;
   res.redirect(redirectNewUrl);
 });
