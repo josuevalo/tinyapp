@@ -111,9 +111,12 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 
 app.post("/login", (req, res) => {
-  const user = req.body.login
-  res.cookie('user_id', user)
-  console.log(`User ${user} is logged in.`)
+  const email = req.body.email
+  const password = req.body.password
+  const user = userLookupByEmail(email)
+
+  res.cookie('user_id', user.id)
+  console.log(`User ${email} is logged in.`)
   res.redirect('/urls');
 });
 
@@ -144,22 +147,7 @@ app.get("/register", (req, res) => {
   }
     res.render("urls_registration", templateVars)
 });
-// const email = req.body.email;
-// const password = req.body.password;
 
-// if (!email || !password) {
-//   return res.status(400).send("email and password cannot be blank");
-// }
-
-// const userLookupByEmail = (email) => {
-//   for(const userId in users) {
-//     const user = users[userId];
-//     if(user.email === email) {
-//       return user;
-//     }
-//   }
-//   return null;
-// }
 
 app.post("/register", (req, res) => {
   const id = generateRandomString();
@@ -186,6 +174,17 @@ app.post("/register", (req, res) => {
   console.log(`User ${user.id} is logged in.`);
   res.redirect('/urls');
 });
+
+app.get("/login", (req, res) => {
+  const cookie = req.cookies.user_id
+  const user = users[cookie]
+  const templateVars = { 
+    user: user,
+    users: users
+  }
+  res.render('urls_login', templateVars);
+})
+
 
 ///
 /// Listen - open port
