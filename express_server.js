@@ -109,18 +109,31 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect('/urls');
 });
 
-
+// if (!email || !password) {
+//   return res.status(400).send("email and password cannot be blank");
+// }
+// res.cookie('user_id', user.id);
+// res.redirect('/secrets')
+// })
 app.post("/login", (req, res) => {
   const email = req.body.email
   const password = req.body.password
   const user = userLookupByEmail(email)
+  
+  if(!user){
+    return res.status(403).send("Sorry! User email does not exist")
+  }
+  
+  if(user.password !== password) {
+      return res.status(403).send('Error. Oops! Something went wrong.')
+    }
 
-  res.cookie('user_id', user.id)
-  console.log(`User ${email} is logged in.`)
-  res.redirect('/urls');
-});
-
-
+    res.cookie('user_id', user.id)
+    console.log(`User ${email} is logged in.`)
+    res.redirect('/urls');
+  });
+  
+  
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   console.log("req.body--->", req.body)
@@ -153,7 +166,7 @@ app.post("/register", (req, res) => {
   const id = generateRandomString();
   const email = req.body.email
   const password = req.body.password
-
+console.log("req.body ----->", req.body)
   if (!email || !password) {
     return res.status(400).send("Oops! Email and password fields cannot be blank.")
   }

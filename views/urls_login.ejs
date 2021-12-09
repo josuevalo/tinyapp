@@ -10,24 +10,24 @@
 
     <title>Login</title>
   </head>
-
   <body>
-
     <%- include('partials/_header') %>
-
+<div style="margin: 0.8em;">
+    <h2>Login</h2>
     <form action="/login" method="POST">
       <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email"
+        <label for="email">Email address</label>
+        <input type="email" class="form-control" id="email" name="email" aria-describedby="emailHelp" placeholder="Enter email" style="width: 300px">
       </div>
       <div class="form-group">
         <label for="password">Password</label>
-        <input type="password" id="password" name="password">
+        <input type="password" class="form-control" id="password" name="password" placeholder="Password" style="width: 300px">
       </div>
       <div class="form-group">
-        <button type="submit" class="btn btn-success">Login</button>
-      </div>
+      <button type="submit" class="btn btn-primary">Login</button>
+    </div>
     </form>
+  </div>
   </body>
   </html>
   
