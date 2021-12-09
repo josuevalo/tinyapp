@@ -40,8 +40,6 @@ const userLookupByEmail = (email) => {
   return null;
 }
 
-
-
 app.get("/urls/new", (req, res) => {
   if (!req.cookies.user_id) {
     res.redirect('/login');
@@ -56,18 +54,31 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  if (!req.cookies.user_id) {
+  const user = req.cookies.user_id
+  if (!user) {
+    // If the user is not logged in, send an error
       return res.status(400).send("Error: you must be logged in to access.");
   }
   console.log(req.body);
   const newUrl = generateRandomString();
-  urlDatabase[newUrl] = req.body.longURL;
+  const url = {
+        longURL: req.body.longURL,
+        userID: user
+    }
+  urlDatabase[newUrl] = url;
+  console.log("after", urlDatabase)
   res.redirect(`/urls/${newUrl}`);
 });
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+  b6UTxQ: {
+      longURL: "https://www.tsn.ca",
+      userID: "aJ48lW"
+  },
+  i3BoGr: {
+      longURL: "https://www.google.ca",
+      userID: "aJ48lW"
+  }
 };
 
 app.get("/urls", (req, res) => {
@@ -98,14 +109,14 @@ app.get("/urls/:shortURL", (req, res) => {
   const user = users[cookie]
   const templateVars = { 
     shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL], 
+    longURL: urlDatabase[req.params.shortURL].longURL, 
     user: user 
   };
   res.render("urls_show", templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const redirectNewUrl = urlDatabase[req.params.shortURL];
+  const redirectNewUrl = urlDatabase[req.params.shortURL].longURL;
   res.redirect(redirectNewUrl);
 });
 
@@ -145,7 +156,7 @@ app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   console.log("req.body--->", req.body)
   const updatedUrl = req.body.newUrl
-  urlDatabase[id] = updatedUrl;
+  urlDatabase[id].longURL = updatedUrl;
   res.redirect('/urls');
 });
 
@@ -155,9 +166,8 @@ app.post("/logout", (req, res) => {
   res.redirect('/urls');
 });
 
-///
 /// Registration
-///
+
 app.get("/register", (req, res) => {
   if (req.cookies.user_id) {
     res.redirect('/urls')
