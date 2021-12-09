@@ -3,23 +3,40 @@ const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser')
+const bcrypt = require('bcryptjs');
 
 app.use(cookieParser())
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
+const userRandomIDPassword = "purple-monkey-dinosaur"
+const aJ48lWPassword = "dishwasher-funk"
+// Because default users are hardcoded, passwords are also included. In order to prevent the passwords from being stored in the users object as plain text, they are put into variables and then stored as hashes in the users object.
+
+// All of new users' passwords are stored as hashes.
+
 const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: bcrypt.hashSync(userRandomIDPassword, 10)
   },
   "aJ48lW": {
     id: "aJ48lW",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    password: bcrypt.hashSync(aJ48lWPassword, 10)
   }
 }
+const urlDatabase = {
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lB"
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW"
+  }
+};
 
 const generateRandomString = function () {
   let characters = "abcdefghijklmnopqrstuvwxyz1234567890";
@@ -72,7 +89,7 @@ app.post("/urls", (req, res) => {
   const user = req.cookies.user_id
   if (!user) {
     // If the user is not logged in, send an error
-    return res.status(400).send("Error: you must be logged in to access.");
+    return res.status(401).send("Error: you must be logged in to access.");
   }
   console.log(req.body);
   const newUrl = generateRandomString();
@@ -85,16 +102,6 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${newUrl}`);
 });
 
-const urlDatabase = {
-  b6UTxQ: {
-    longURL: "https://www.tsn.ca",
-    userID: "aJ48lB"
-  },
-  i3BoGr: {
-    longURL: "https://www.google.ca",
-    userID: "aJ48lW"
-  }
-};
 
 app.get("/urls", (req, res) => {
   const cookie = req.cookies.user_id;
@@ -105,7 +112,6 @@ app.get("/urls", (req, res) => {
   // }
 
   const compareActiveUser = urlsForUser(cookie);
-  console.log("compare active user", compareActiveUser);
   const templateVars = {
     urls: compareActiveUser,
     user: user
@@ -156,7 +162,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   const user = req.cookies.user_id
   if (!user) {
     // If the user is not logged in, send an error
-    return res.status(400).send("Error: you must be logged in to access.");
+    return res.status(403).send("Error: you must be logged in to access.");
   }
   console.log("Deleted:", req.params.shortURL, urlDatabase[req.params.shortURL]);
   delete urlDatabase[req.params.shortURL]
@@ -173,12 +179,12 @@ app.post("/login", (req, res) => {
   const email = req.body.email
   const password = req.body.password
   const user = userLookupByEmail(email)
-
+  
   if (!user) {
     return res.status(403).send("Sorry! User email does not exist")
   }
 
-  if (user.password !== password) {
+  if (!bcrypt.compareSync(password, user.password)) {
     return res.status(403).send('Error. Oops! Something went wrong.')
   }
 
@@ -192,7 +198,7 @@ app.post("/urls/:id", (req, res) => {
   const user = req.cookies.user_id
   if (!user) {
     // If the user is not logged in, send an error
-    return res.status(400).send("Error: you must be logged in to access.");
+    return res.status(401).send("Error: you must be logged in to access.");
   }
   const id = req.params.id;
   console.log("req.body--->", req.body)
@@ -226,26 +232,27 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   const id = generateRandomString();
   const email = req.body.email
-  const password = req.body.password
-  console.log("req.body ----->", req.body)
-  if (!email || !password) {
-    return res.status(400).send("Oops! Email and password fields cannot be blank.")
+  const hashedPassword = bcrypt.hashSync(req.body.password, 10);
+  // const password = req.body.password
+  if (!email || !hashedPassword) {
+    return res.status(403).send("Oops! Email and password fields cannot be blank.")
   }
 
   const userId = userLookupByEmail(email);
   console.log('user--->', userId);
   if (userId) {
-    return res.status(400).send("Oops! The email seems to already exist")
+    return res.status(403).send("Oops! The email seems to already exist")
   }
 
   const user = {
     id: id,
     email: email,
-    password: password
+    password: hashedPassword
   }
+  console.log("USER USER USER USER", user)
   users[id] = user
   res.cookie('user_id', id);
-  console.log(`User ${user.id} is logged in.`);
+  console.log(`User ${user.email} is logged in.`);
   res.redirect('/urls');
 });
 
