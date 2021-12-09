@@ -2,6 +2,9 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
+const { generateRandomString, userLookupByEmail, urlsForUser } = require("./helpers.js")
+
+const { users, urlDatabase } = require("./database.js")
 // const cookieParser = require('cookie-parser')
 const cookieSession = require('cookie-session')
 const bcrypt = require('bcryptjs');
@@ -18,68 +21,67 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
 
-const userRandomIDPassword = "purple-monkey-dinosaur"
-const aJ48lWPassword = "dishwasher-funk"
-// Because default users are hardcoded, passwords are also included. In order to prevent the passwords from being stored in the users object as plain text, they are put into variables and then stored as hashes in the users object.
+// const userRandomIDPassword = "purple-monkey-dinosaur"
+// const aJ48lWPassword = "dishwasher-funk"
+// // Because default users are hardcoded, passwords are also included. In order to prevent the passwords from being stored in the users object as plain text, they are put into variables and then stored as hashes in the users object.
 
-// All of new users' passwords are stored as hashes.
+// // All of new users' passwords are stored as hashes.
 
-const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: bcrypt.hashSync(userRandomIDPassword, 10)
-  },
-  "aJ48lW": {
-    id: "aJ48lW",
-    email: "user2@example.com",
-    password: bcrypt.hashSync(aJ48lWPassword, 10)
-  }
-}
-const urlDatabase = {
-  b6UTxQ: {
-    longURL: "https://www.tsn.ca",
-    userID: "aJ48lB"
-  },
-  i3BoGr: {
-    longURL: "https://www.google.ca",
-    userID: "aJ48lW"
-  }
-};
+// const users = {
+//   "userRandomID": {
+//     id: "userRandomID",
+//     email: "user@example.com",
+//     password: bcrypt.hashSync(userRandomIDPassword, 10)
+//   },
+//   "aJ48lW": {
+//     id: "aJ48lW",
+//     email: "user2@example.com",
+//     password: bcrypt.hashSync(aJ48lWPassword, 10)
+//   }
+// }
+// const urlDatabase = {
+//   b6UTxQ: {
+//     longURL: "https://www.tsn.ca",
+//     userID: "aJ48lB"
+//   },
+//   i3BoGr: {
+//     longURL: "https://www.google.ca",
+//     userID: "aJ48lW"
+//   }
+// };
 
-const generateRandomString = function () {
-  let characters = "abcdefghijklmnopqrstuvwxyz1234567890";
-  let random = "";
-  for (let i = 0; i < 6; i++) {
-    random += characters[Math.floor(Math.random() * characters.length)];
-  }
-  return random;
-};
+// const generateRandomString = function () {
+//   let characters = "abcdefghijklmnopqrstuvwxyz1234567890";
+//   let random = "";
+//   for (let i = 0; i < 6; i++) {
+//     random += characters[Math.floor(Math.random() * characters.length)];
+//   }
+//   return random;
+// };
 
-const userLookupByEmail = (email) => {
-  for (const userId in users) {
-    const user = users[userId];
-    if (user.email === email) {
-      return user;
-    }
-  }
-  return null;
-}
+// const userLookupByEmail = (email, database) => {
+//   for (const userId in database) {
+//     const user = database[userId];
+//     if (user.email === email) {
+//       return user;
+//     }
+//   }
+//   return null;
+// }
 
-const urlsForUser = function (id) {
-  if (!id) {
-    return {}
-  }
-
-  let newObject = {}
-  for (let urls in urlDatabase) {
-    const check = urlDatabase[urls]
-    if (id === check.userID) {
-      newObject[urls] = check
-    }
-  }
-  return newObject
-}
+// const urlsForUser = function (id) {
+//   if (!id) {
+//     return {}
+//   }
+//   let newObject = {}
+//   for (let urls in urlDatabase) {
+//     const check = urlDatabase[urls]
+//     if (id === check.userID) {
+//       newObject[urls] = check
+//     }
+//   }
+//   return newObject
+// }
 
 app.get("/urls/new", (req, res) => {
   if (!req.session.user_id) {
@@ -187,7 +189,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post("/login", (req, res) => {
   const email = req.body.email
   const password = req.body.password
-  const user = userLookupByEmail(email)
+  const user = userLookupByEmail(email, users)
   
   if (!user) {
     return res.status(403).send("Sorry! User email does not exist")
@@ -246,7 +248,7 @@ app.post("/register", (req, res) => {
     return res.status(403).send("Oops! Email and password fields cannot be blank.")
   }
 
-  const userId = userLookupByEmail(email);
+  const userId = userLookupByEmail(email, users);
   console.log('user--->', userId);
   if (userId) {
     return res.status(403).send("Oops! The email seems to already exist")
