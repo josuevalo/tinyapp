@@ -1,9 +1,9 @@
-const { generateRandomString, userLookupByEmail, urlsForUser } = require("./helpers.js")
+const { generateRandomString, userLookupByEmail, urlsForUser } = require("./helpers.js");
 const bcrypt = require('bcryptjs');
-const server = require("./express_server.js")
+const server = require("./express_server.js");
 
-const userRandomIDPassword = "purple-monkey-dinosaur"
-const aJ48lWPassword = "dishwasher-funk"
+const userRandomIDPassword = "purple-monkey-dinosaur";
+const aJ48lWPassword = "dishwasher-funk";
 // Because default users are hardcoded, passwords are also included. In order to prevent the passwords from being stored in the users object as plain text, they are put into variables and then stored as hashes in the users object.
 
 // All of new users' passwords are stored as hashes.
@@ -19,7 +19,9 @@ const users = {
     email: "user2@example.com",
     password: bcrypt.hashSync(aJ48lWPassword, 10)
   }
-}
+};
+
+// Default URL database for testing purposes. 
 
 const urlDatabase = {
   b6UTxQ: {
@@ -32,4 +34,4 @@ const urlDatabase = {
   }
 };
 
-module.exports = { users, urlDatabase }
+module.exports = { users, urlDatabase };

@@ -1,7 +1,8 @@
-// const server = require("/express_server.js")
-const { users, urlDatabase } = require("./database.js")
+// File for helper functions found in express_server.js
 
-const generateRandomString = function () {
+const { users, urlDatabase } = require("./database.js");
+
+const generateRandomString = function() {
   let characters = "abcdefghijklmnopqrstuvwxyz1234567890";
   let random = "";
   for (let i = 0; i < 6; i++) {
@@ -9,7 +10,6 @@ const generateRandomString = function () {
   }
   return random;
 };
-
 
 const userLookupByEmail = (email, database) => {
   for (const userId in database) {
@@ -19,20 +19,20 @@ const userLookupByEmail = (email, database) => {
     }
   }
   return null;
-}
+};
 
-const urlsForUser = function (id) {
+const urlsForUser = function(id) {
   if (!id) {
-    return {}
+    return {};
   }
-  let newObject = {}
+  let newObject = {};
   for (let urls in urlDatabase) {
-    const check = urlDatabase[urls]
+    const check = urlDatabase[urls];
     if (id === check.userID) {
-      newObject[urls] = check
+      newObject[urls] = check;
     }
   }
-  return newObject
-}
+  return newObject;
+};
 
-module.exports = { generateRandomString, userLookupByEmail, urlsForUser }
+module.exports = { generateRandomString, userLookupByEmail, urlsForUser };
