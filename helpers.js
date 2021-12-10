@@ -1,6 +1,6 @@
-// File for helper functions found in express_server.js
+/// File for helper functions found in express_server.js ///
 
-const { users, urlDatabase } = require("./database.js");
+const { urlDatabase } = require("./database.js");
 
 const generateRandomString = function() {
   let characters = "abcdefghijklmnopqrstuvwxyz1234567890";
