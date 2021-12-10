@@ -74,17 +74,6 @@ app.get("/", (req, res) => {
   }
 });
 
-/// TEST ROUTES ///
-
-app.get("/urls.json", (req, res) => {
-  // res.send("For admin use only.");
-  res.json(urlDatabase);
-});
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
-
 /// GET ROUTES FOR SHORT URL ///
 
 app.get("/urls/:shortURL", (req, res) => {
